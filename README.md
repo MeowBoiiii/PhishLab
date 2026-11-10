@@ -10,6 +10,7 @@ Zrealizowano zgodnie z planem pracy:
 - Tydzień 2 (okrojony): Logowanie (widok statyczny).
 
 ## Uruchomienie
+0. `winget install OpenJS.NodeJS.LTS`
 1. `npm install`
 2. `npm run dev`
 >>>>>>> origin/front-end

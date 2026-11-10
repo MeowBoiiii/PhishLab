@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python
 __pycache__/
 *.py[cod]
@@ -46,3 +47,6 @@ raport*.md
 reports/
 *.log
 
+=======
+node_modules/
+>>>>>>> origin/front-end

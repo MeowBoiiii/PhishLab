@@ -8,3 +8,5 @@ Zrealizowano zgodnie z planem pracy:
 ## Uruchomienie
 1. `npm install`
 2. `npm run dev`
+# PhishLab
+Aplikacja realizowana w ramach zespołowego projektu programistycznego

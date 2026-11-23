@@ -46,3 +46,4 @@ raport*.md
 reports/
 *.log
 
+node_modules/

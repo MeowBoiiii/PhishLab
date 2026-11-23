@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from app.core.config import settings
@@ -10,18 +10,19 @@ from app.schemas.auth import LoginRequest, TokenResponse, AdminResponse, AdminCr
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+security = HTTPBearer()
 
 def get_current_admin(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> Admin:
-    """Weryfikuje token JWT z nagłówka Authorization i pobiera aktualnego admina z bazy."""
+    """Weryfikuje token JWT z nagłówka Authorization: Bearer <token>."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Nie można zweryfikować tożsamości",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         admin_id: str = payload.get("sub")

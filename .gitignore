@@ -47,3 +47,5 @@ reports/
 *.log
 
 node_modules/
+
+tests/

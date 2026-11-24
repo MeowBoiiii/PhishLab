@@ -1,0 +1,36 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import Login from './views/Login';
+import DashboardMockup from './views/DashboardMockup';
+import CampaignCreator from './views/CampaignCreator';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <nav className="bg-blue-800 text-white p-4 shadow flex gap-4">
+          <Link to="/" className="font-bold">PhishLab</Link>
+          <Link to="/login" className="hover:underline">Logowanie</Link>
+          <Link to="/dashboard" className="hover:underline">Dashboard</Link>
+          <Link to="/kreator" className="hover:underline">Kreator kampanii</Link>
+          <Link to="/dashboard" className="hover:underline">Dashboard (Makieta)</Link>
+        </nav>
+        <div className="flex-grow">
+          <Routes>
+            <Route path="/" element={<div className="p-8">Witaj w PhishLab - wybierz widok z menu.</div>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<DashboardMockup />} />
+            <Route path="/kreator" element={<CampaignCreator />} />
+          </Routes>
+        </div>
+      </div>
+    </BrowserRouter>
+  );
+}
+          </Routes>
+        </div>
+      </div>
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    </BrowserRouter>
+  );
+}

@@ -27,10 +27,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-          </Routes>
-        </div>
-      </div>
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    </BrowserRouter>
-  );
-}

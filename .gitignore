@@ -46,9 +46,7 @@ raport*.md
 reports/
 *.log
 
+# Frontend & Testing
 node_modules/
-
 tests/
-node_modules/
-node_modules/
-node_modules/
+PRZEWODNIK_PREZENTACJI.md

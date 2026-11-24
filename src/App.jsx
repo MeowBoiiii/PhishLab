@@ -13,6 +13,7 @@ export default function App() {
           <Link to="/login" className="hover:underline">Logowanie</Link>
           <Link to="/dashboard" className="hover:underline">Dashboard</Link>
           <Link to="/kreator" className="hover:underline">Kreator kampanii</Link>
+          <Link to="/dashboard" className="hover:underline">Dashboard (Makieta)</Link>
         </nav>
         <div className="flex-grow">
           <Routes>
@@ -23,6 +24,13 @@ export default function App() {
           </Routes>
         </div>
       </div>
+    </BrowserRouter>
+  );
+}
+          </Routes>
+        </div>
+      </div>
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     </BrowserRouter>
   );
 }

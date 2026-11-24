@@ -1,0 +1,108 @@
+# Pipeline CI/CD (GitHub Actions) - automatyczna weryfikacja projektu przy zmianach w kodzie
+name: PhishLab CI
+
+# Uruchamiaj automatycznie przy każdym pushu oraz otwarciu/aktualizacji Pull Requesta
+on:
+  push:
+  pull_request:
+
+jobs:
+  # Zadanie 1: Test bazy PostgreSQL, migracji Alembic oraz połączenia z backendem FastAPI
+  backend-and-db:
+    name: Backend, PostgreSQL & Migrations
+    runs-on: ubuntu-latest
+
+    # Uruchomienie tymczasowego kontenera PostgreSQL na potrzeby testów w chmurze GitHub
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: phishlab_user
+          POSTGRES_PASSWORD: phishlab_password
+          POSTGRES_DB: phishlab
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    # Zmienne środowiskowe używane przez backend i Alembic podczas testu
+    env:
+      POSTGRES_SERVER: localhost
+      POSTGRES_USER: phishlab_user
+      POSTGRES_PASSWORD: phishlab_password
+      POSTGRES_DB: phishlab
+      POSTGRES_PORT: 5432
+      SECRET_KEY: ci_test_secret_key
+
+    steps:
+      - name: Checkout repository                   # Pobranie kodu z repozytorium
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11                    # Instalacja Pythona w tej samej wersji co w Dockerfile
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies          # Instalacja bibliotek z requirements.txt
+        working-directory: PhishLab/backend
+        run: pip install -r requirements.txt
+
+      - name: Run Alembic migrations                # Wykonanie migracji bazy na czystym PostgreSQL
+        working-directory: PhishLab/backend
+        run: alembic upgrade head
+
+      - name: Verify DB connection, tables and FastAPI app # Test połączenia, obecności 6 tabel i importu API
+        working-directory: PhishLab/backend
+        run: |
+          python -c "
+          from sqlalchemy import inspect, text
+          from app.core.database import engine
+          from app.main import app
+
+          with engine.connect() as conn:
+              assert conn.execute(text('SELECT 1')).scalar() == 1
+              tables = set(inspect(conn).get_table_names())
+              expected = {'admins', 'target_users', 'templates', 'campaigns', 'campaign_tracking', 'quiz_questions'}
+              assert expected.issubset(tables), f'Brakujące tabele: {expected - tables}'
+          print('DB connection, migrations and FastAPI import OK! Tables:', sorted(tables))
+          "
+
+  # Zadanie 2: Walidacja pliku docker-compose.yml i test budowania obrazu Dockera
+  docker-build:
+    name: Docker Compose & Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml           # Sprawdzenie poprawności składni docker-compose.yml
+        working-directory: PhishLab
+        run: docker compose config --quiet
+
+      - name: Build backend Docker image            # Próba zbudowania obrazu backendu z Dockerfile
+        working-directory: PhishLab
+        run: docker compose build
+
+  # Zadanie 3: Weryfikacja, czy frontend w React/Vite buduje się bez błędów
+  frontend-build:
+    name: Frontend Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js                        # Instalacja Node.js (wersja LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies                  # Czysta instalacja paczek z package-lock.json
+        run: npm ci
+
+      - name: Build frontend                        # Budowanie paczki produkcyjnej frontendu
+        run: npm run build

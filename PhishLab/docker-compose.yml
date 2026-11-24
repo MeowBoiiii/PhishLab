@@ -1,35 +1,48 @@
+# Konfiguracja wielokontenerowego środowiska Docker dla PhishLab (baza + backend)
 services:
+  # Serwis bazy danych PostgreSQL
   db:
-    image: postgres:15-alpine
-    container_name: phishlab_db
-    restart: always
-    environment:
+    image: postgres:15-alpine                       # Lekki obraz PostgreSQL w wersji 15
+    container_name: phishlab_db                     # Stała nazwa kontenera ułatwiająca komendy docker exec
+    restart: always                                 # Automatyczny restart po awarii lub restarcie systemu
+    environment:                                    # Dane dostępowe do bazy (muszą być spójne z config.py)
       POSTGRES_USER: phishlab_user
       POSTGRES_PASSWORD: phishlab_password
       POSTGRES_DB: phishlab
     ports:
-      - "5432:5432"
+      - "5432:5432"                                 # Udostępnienie portu bazy lokalnie (np. dla DBeavera)
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data      # Trwałe przechowywanie danych bazy między restartami
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/init.sql # Automatyczne utworzenie tabel przy 1. starcie
+    healthcheck:                                    # Sprawdza, czy PostgreSQL faktycznie przyjmuje połączenia
+      test: ["CMD-SHELL", "pg_isready -U phishlab_user -d phishlab"]
+      interval: 5s                                  # Sprawdzaj co 5 sekund
+      timeout: 5s                                   # Maksymalny czas oczekiwania na odpowiedź
+      retries: 5                                    # Liczba prób przed uznaniem kontenera za uszkodzony
 
+  # Serwis backendu (FastAPI)
   backend:
     build:
-      context: ./backend
+      context: ./backend                            # Katalog z kodem backendu i plikiem Dockerfile
       dockerfile: Dockerfile
-    container_name: phishlab_backend
+    container_name: phishlab_backend                # Stała nazwa kontenera backendu
     restart: always
     ports:
-      - "8000:8000"
-    environment:
-      - POSTGRES_SERVER=db
+      - "8000:8000"                                 # Udostępnienie API pod http://localhost:8000
+    volumes:
+      - ./backend:/app                              # Synchronizacja kodu na żywo (wymagane dla flagi --reload)
+    environment:                                    # Zmienne środowiskowe wstrzykiwane do app/core/config.py
+      - POSTGRES_SERVER=db                          # Nazwa serwisu bazy w sieci wewnętrznej Dockera
       - POSTGRES_USER=phishlab_user
       - POSTGRES_PASSWORD=phishlab_password
       - POSTGRES_DB=phishlab
       - POSTGRES_PORT=5432
+      - FRONTEND_URL=http://localhost:5173          # Adres frontendu do przekierowań edukacyjnych
       - SECRET_KEY=temporary_dev_secret_key_change_in_production
     depends_on:
-      - db
+      db:
+        condition: service_healthy                  # Uruchom backend dopiero, gdy baza przejdzie healthcheck
 
+# Definicja nazwanych wolumenów Dockera
 volumes:
-  postgres_data:
+  postgres_data:                                    # Wolumen na pliki bazy danych PostgreSQL

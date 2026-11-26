@@ -3,7 +3,8 @@
 Szkielet aplikacji i makiety statyczne.
 Zrealizowano zgodnie z planem pracy:
 - Tydzień 1: Setup projektu, repozytorium UI, makiety.
-- Tydzień 2 (okrojony): Logowanie (widok statyczny).
+- Tydzień 2: (okrojony): Logowanie (widok statyczny).
+- Tydzień 3: Prezentacja śródsemestralna - sprawna baza danych, działający system logowania z obsługą błędów
 
 ## Uruchomienie
 1. `npm install`
